@@ -55,6 +55,10 @@ export default css`
   }
 
   #add-conversion-btn {
+    background-color: lightgoldenrodyellow;
+  }
+
+  #remove-conversion-btn {
     background-color: lightcoral;
   }
 
@@ -70,15 +74,34 @@ export default css`
     flex-direction: column;
   }
 
+  label input[type='text'],
+  label select {
+    width: 125px;
+    box-sizing: border-box;
+  }
+
+  .wrapper {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  @media (min-width: 400px) {
+    label input[type='text'],
+    label select {
+      width: 170px;
+    }
+  }
+
   @media (min-width: 600px) {
-    .wrapper {
+    .btn-group {
       flex-direction: row;
       justify-content: space-between;
-      align-items: center;
     }
 
-    #convert-btn {
-      margin-top: 20px;
+    label input[type='text'],
+    label select {
+      width: 250px;
     }
   }
 `;

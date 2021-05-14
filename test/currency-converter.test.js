@@ -78,10 +78,10 @@ describe('CurrencyConverter', () => {
 
     const sourceAmount = 1;
     const sourceCurrency = 'GBP';
-    el.sourceCurrency.value.value = sourceCurrency;
+    el.source.value.querySelector('label select').value = sourceCurrency;
     const targetCurrency = 'TRY';
-    el.targetCurrency.value.value = targetCurrency;
-    el.sourceAmount.value.value = sourceAmount;
+    el.target.value.querySelector('label select').value = targetCurrency;
+    el.source.value.querySelector('label input').value = sourceAmount;
 
     const convertBtn = el.shadowRoot.getElementById('convert-btn');
     convertBtn.click();
@@ -89,10 +89,9 @@ describe('CurrencyConverter', () => {
     const expectedTargetAmount =
       (sourceAmount / rates[sourceCurrency]) * rates[targetCurrency];
 
-    await expect(parseFloat(el.targetAmount.value.value)).to.be.closeTo(
-      expectedTargetAmount,
-      0.001,
-    );
+    await expect(
+      parseFloat(el.target.value.querySelector('label input').value),
+    ).to.be.closeTo(expectedTargetAmount, 0.001);
   });
 
   it('allows converting back from target to source', async () => {
@@ -101,10 +100,10 @@ describe('CurrencyConverter', () => {
 
     const targetAmount = 12;
     const sourceCurrency = 'GBP';
-    el.sourceCurrency.value.value = sourceCurrency;
+    el.source.value.querySelector('label select').value = sourceCurrency;
     const targetCurrency = 'TRY';
-    el.targetCurrency.value.value = targetCurrency;
-    el.targetAmount.value.value = targetAmount;
+    el.target.value.querySelector('label select').value = targetCurrency;
+    el.target.value.querySelector('label input').value = targetAmount;
 
     const convertBackBtn = el.shadowRoot.getElementById('convert-back-btn');
     convertBackBtn.click();
@@ -112,10 +111,9 @@ describe('CurrencyConverter', () => {
     const expectedTargetAmount =
       (targetAmount / rates[targetCurrency]) * rates[sourceCurrency];
 
-    await expect(parseFloat(el.sourceAmount.value.value)).to.be.closeTo(
-      expectedTargetAmount,
-      0.001,
-    );
+    await expect(
+      parseFloat(el.source.value.querySelector('label input').value),
+    ).to.be.closeTo(expectedTargetAmount, 0.001);
   });
 
   it('allows setting different conversion rate date', async () => {
@@ -133,10 +131,10 @@ describe('CurrencyConverter', () => {
 
     const sourceAmount = 1;
     const sourceCurrency = 'GBP';
-    el.sourceCurrency.value.value = sourceCurrency;
+    el.source.value.querySelector('label select').value = sourceCurrency;
     const targetCurrency = 'TRY';
-    el.targetCurrency.value.value = targetCurrency;
-    el.sourceAmount.value.value = sourceAmount;
+    el.target.value.querySelector('label select').value = targetCurrency;
+    el.source.value.querySelector('label input').value = sourceAmount;
 
     const convertBtn = el.shadowRoot.getElementById('convert-btn');
     convertBtn.click();
@@ -145,10 +143,44 @@ describe('CurrencyConverter', () => {
       (sourceAmount / ratesOneYearAgo[sourceCurrency]) *
       ratesOneYearAgo[targetCurrency];
 
-    await expect(parseFloat(el.targetAmount.value.value)).to.be.closeTo(
-      expectedTargetAmount,
-      0.001,
-    );
+    await expect(
+      parseFloat(el.target.value.querySelector('label input').value),
+    ).to.be.closeTo(expectedTargetAmount, 0.001);
+  });
+
+  it('allows adding and removing conversions', async () => {
+    const el = await fixture(html`<currency-converter></currency-converter>`);
+    await el.loadRatesComplete;
+
+    expect(
+      Array.from(el.source.value.querySelectorAll('label input')).length,
+    ).to.equal(1);
+    expect(
+      Array.from(el.target.value.querySelectorAll('label input')).length,
+    ).to.equal(1);
+
+    const addBtn = el.shadowRoot.getElementById('add-conversion-btn');
+    const removeBtn = el.shadowRoot.getElementById('remove-conversion-btn');
+
+    addBtn.click();
+    await el.updateComplete;
+
+    expect(
+      Array.from(el.source.value.querySelectorAll('label input')).length,
+    ).to.equal(2);
+    expect(
+      Array.from(el.target.value.querySelectorAll('label input')).length,
+    ).to.equal(2);
+
+    removeBtn.click();
+    await el.updateComplete;
+
+    expect(
+      Array.from(el.source.value.querySelectorAll('label input')).length,
+    ).to.equal(1);
+    expect(
+      Array.from(el.target.value.querySelectorAll('label input')).length,
+    ).to.equal(1);
   });
 
   it('passes the a11y audit', async () => {
