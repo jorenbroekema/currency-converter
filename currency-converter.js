@@ -15,6 +15,16 @@ import { ref, createRef } from 'lit/directives/ref.js';
  * - Bidirectional conversion (user can input either source or target amount)
  * - Show historical rates evolution (e.g. with chart)
  */
+
+export async function fetchRates() {
+  const response = await fetch('https://api.ratesapi.io/api/latest');
+  const result = await response.json();
+  if (response.status === 200) {
+    return result;
+  }
+  throw new Error('Something went wrong fetching the rates');
+}
+
 export class CurrencyConverter extends LitElement {
   static get styles() {
     return css`
@@ -39,6 +49,7 @@ export class CurrencyConverter extends LitElement {
   static get properties() {
     return {
       currencies: { attribute: false },
+      rates: { attribute: false },
       baseCurrency: { attribute: false },
     };
   }
@@ -50,6 +61,10 @@ export class CurrencyConverter extends LitElement {
   constructor() {
     super();
     this.baseCurrency = 'EUR';
+    this.loadRatesComplete = new Promise((resolve) => {
+      this.loadRatesCompleteResolve = resolve;
+    });
+
     [
       'sourceCurrency',
       'targetCurrency',
@@ -62,7 +77,11 @@ export class CurrencyConverter extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.fetchRates();
+    fetchRates().then((result) => {
+      this.currencies = Object.keys(result.rates);
+      this.rates = result.rates;
+      this.loadRatesCompleteResolve();
+    });
   }
 
   render() {
@@ -84,7 +103,7 @@ export class CurrencyConverter extends LitElement {
               </label>
             </div>
 
-            <button @click=${this.convertAmount}>--></button>
+            <button id="convert-btn" @click=${this.convertAmount}>--></button>
             <div class="target">
               <label>
                 To
@@ -102,15 +121,6 @@ export class CurrencyConverter extends LitElement {
           `
         : 'Loading currencies...'}
     `;
-  }
-
-  async fetchRates() {
-    const response = await fetch('https://api.ratesapi.io/api/latest');
-    const result = await response.json();
-    if (response.status === 200) {
-      this.currencies = Object.keys(result.rates);
-      this.rates = result.rates;
-    }
   }
 
   async convertAmount() {
