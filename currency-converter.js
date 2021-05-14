@@ -1,4 +1,5 @@
 import { html, css, LitElement } from 'lit';
+import { ref, createRef } from 'lit/directives/ref.js';
 
 /**
  * - Ability to select the source and target currencies
@@ -18,17 +19,114 @@ export class CurrencyConverter extends LitElement {
   static get styles() {
     return css`
       :host {
-        display: block;
+        display: flex;
+      }
+
+      .source,
+      .target {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .source label,
+      .target label {
+        display: flex;
+        flex-direction: column;
       }
     `;
   }
 
   static get properties() {
-    return {};
+    return {
+      currencies: { attribute: false },
+      baseCurrency: { attribute: false },
+    };
+  }
+
+  static get locale() {
+    return document.documentElement.lang || 'en-GB';
+  }
+
+  constructor() {
+    super();
+    this.baseCurrency = 'EUR';
+    [
+      'sourceCurrency',
+      'targetCurrency',
+      'sourceAmount',
+      'targetAmount',
+    ].forEach((prop) => {
+      this[prop] = createRef();
+    });
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.fetchRates();
   }
 
   render() {
-    return html``;
+    return html`
+      ${this.currencies
+        ? html`
+            <div class="source">
+              <label>
+                From
+                <select ${ref(this.sourceCurrency)}>
+                  ${this.currencies.map(
+                    (curr) => html` <option>${curr}</option> `,
+                  )}
+                </select>
+              </label>
+              <label>
+                Amount
+                <input ${ref(this.sourceAmount)} />
+              </label>
+            </div>
+
+            <button @click=${this.convertAmount}>--></button>
+            <div class="target">
+              <label>
+                To
+                <select ${ref(this.targetCurrency)}>
+                  ${this.currencies.map(
+                    (curr) => html` <option>${curr}</option> `,
+                  )}
+                </select>
+              </label>
+              <label>
+                Amount
+                <input ${ref(this.targetAmount)} />
+              </label>
+            </div>
+          `
+        : 'Loading currencies...'}
+    `;
+  }
+
+  async fetchRates() {
+    const response = await fetch('https://api.ratesapi.io/api/latest');
+    const result = await response.json();
+    if (response.status === 200) {
+      this.currencies = Object.keys(result.rates);
+      this.rates = result.rates;
+    }
+  }
+
+  async convertAmount() {
+    const [sourceCurrency, targetCurrency, sourceAmount] = [
+      'sourceCurrency',
+      'targetCurrency',
+      'sourceAmount',
+    ].map((prop) => this[prop].value.value);
+
+    const sourceRateToEUR = this.rates[sourceCurrency];
+    const targetRateToEUR = this.rates[targetCurrency];
+
+    const targetAmount = (sourceAmount / sourceRateToEUR) * targetRateToEUR;
+    this.targetAmount.value.value = new Intl.NumberFormat(this.locale).format(
+      targetAmount,
+    );
   }
 }
 customElements.define('currency-converter', CurrencyConverter);
