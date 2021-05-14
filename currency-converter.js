@@ -2,17 +2,9 @@ import { html, css, LitElement } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
 
 /**
- * - Ability to select the source and target currencies
- * - Ability to input the source amount
- * - Conversion rates must be pulled from a third-party API.
- *   We recommend using https://ratesapi.io/, but other APIs may be used as well,
- *   however the actual conversion calculation must be performed by your application
- *   (also do not use any third-party libraries for it).
- *
  * Bonus:
  * - Ability to perform multiple conversions at the same time
  * - Option to select a different date for the conversion rate
- * - Bidirectional conversion (user can input either source or target amount)
  * - Show historical rates evolution (e.g. with chart)
  */
 
@@ -44,7 +36,13 @@ export class CurrencyConverter extends LitElement {
         margin-bottom: 5px;
       }
 
-      #convert-btn {
+      .btn-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #convert-btn,
+      #convert-back-btn {
         padding: 10px;
         background-color: lightgreen;
         border: none;
@@ -54,6 +52,10 @@ export class CurrencyConverter extends LitElement {
         font-weight: 700;
         font-size: 16px;
         font-family: 'Roboto Slab', sans-serif;
+      }
+
+      #convert-back-btn {
+        background-color: lightblue;
       }
 
       .source,
@@ -82,7 +84,6 @@ export class CurrencyConverter extends LitElement {
     return {
       currencies: { attribute: false },
       rates: { attribute: false },
-      baseCurrency: { attribute: false },
     };
   }
 
@@ -92,17 +93,18 @@ export class CurrencyConverter extends LitElement {
 
   constructor() {
     super();
-    this.baseCurrency = 'EUR';
     this.loadRatesComplete = new Promise((resolve) => {
       this.loadRatesCompleteResolve = resolve;
     });
 
-    [
+    this.userInputs = [
       'sourceCurrency',
       'targetCurrency',
       'sourceAmount',
       'targetAmount',
-    ].forEach((prop) => {
+    ];
+
+    this.userInputs.forEach((prop) => {
       this[prop] = createRef();
     });
   }
@@ -122,7 +124,7 @@ export class CurrencyConverter extends LitElement {
         ? html`
             <div class="source">
               <label>
-                From
+                Source
                 <select ${ref(this.sourceCurrency)}>
                   ${this.currencies.map(
                     (curr) => html` <option>${curr}</option> `,
@@ -135,12 +137,21 @@ export class CurrencyConverter extends LitElement {
               </label>
             </div>
 
-            <button id="convert-btn" @click=${this.convertAmount}>
-              Convert
-            </button>
+            <div class="btn-group">
+              <button id="convert-btn" @click=${this.convertAmount}>
+                Convert
+              </button>
+              <button
+                id="convert-back-btn"
+                @click=${() => this.convertAmount({ reverse: true })}
+              >
+                Convert Back
+              </button>
+            </div>
+
             <div class="target">
               <label>
-                To
+                Target
                 <select ${ref(this.targetCurrency)}>
                   ${this.currencies.map(
                     (curr) => html` <option>${curr}</option> `,
@@ -157,20 +168,26 @@ export class CurrencyConverter extends LitElement {
     `;
   }
 
-  async convertAmount() {
-    const [sourceCurrency, targetCurrency, sourceAmount] = [
-      'sourceCurrency',
-      'targetCurrency',
-      'sourceAmount',
-    ].map((prop) => this[prop].value.value);
+  async convertAmount({ reverse = false }) {
+    const [sourceCurrency, targetCurrency, sourceAmount, targetAmount] =
+      this.userInputs.map((prop) => this[prop].value.value);
 
     const sourceRateToEUR = this.rates[sourceCurrency];
     const targetRateToEUR = this.rates[targetCurrency];
 
-    const targetAmount = (sourceAmount / sourceRateToEUR) * targetRateToEUR;
-    this.targetAmount.value.value = new Intl.NumberFormat(this.locale).format(
-      targetAmount,
-    );
+    if (!reverse) {
+      const newTargetAmount =
+        (sourceAmount / sourceRateToEUR) * targetRateToEUR;
+      this.targetAmount.value.value = new Intl.NumberFormat(this.locale).format(
+        newTargetAmount,
+      );
+    } else {
+      const newSourceAmount =
+        (targetAmount / targetRateToEUR) * sourceRateToEUR;
+      this.sourceAmount.value.value = new Intl.NumberFormat(this.locale).format(
+        newSourceAmount,
+      );
+    }
   }
 }
 customElements.define('currency-converter', CurrencyConverter);

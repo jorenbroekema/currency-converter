@@ -41,19 +41,43 @@ describe('CurrencyConverter', () => {
     const el = await fixture(html`<currency-converter></currency-converter>`);
     await el.loadRatesComplete;
 
+    const sourceAmount = 1;
     const sourceCurrency = 'GBP';
     el.sourceCurrency.value.value = sourceCurrency;
     const targetCurrency = 'TRY';
     el.targetCurrency.value.value = targetCurrency;
-    el.sourceAmount.value.value = 1;
+    el.sourceAmount.value.value = sourceAmount;
 
     const convertBtn = el.shadowRoot.getElementById('convert-btn');
     convertBtn.click();
 
     const expectedTargetAmount =
-      (1 / rates[sourceCurrency]) * rates[targetCurrency];
+      (sourceAmount / rates[sourceCurrency]) * rates[targetCurrency];
 
     await expect(parseFloat(el.targetAmount.value.value)).to.be.closeTo(
+      expectedTargetAmount,
+      0.001,
+    );
+  });
+
+  it('allows converting back from target to source', async () => {
+    const el = await fixture(html`<currency-converter></currency-converter>`);
+    await el.loadRatesComplete;
+
+    const targetAmount = 12;
+    const sourceCurrency = 'GBP';
+    el.sourceCurrency.value.value = sourceCurrency;
+    const targetCurrency = 'TRY';
+    el.targetCurrency.value.value = targetCurrency;
+    el.targetAmount.value.value = targetAmount;
+
+    const convertBackBtn = el.shadowRoot.getElementById('convert-back-btn');
+    convertBackBtn.click();
+
+    const expectedTargetAmount =
+      (targetAmount / rates[targetCurrency]) * rates[sourceCurrency];
+
+    await expect(parseFloat(el.sourceAmount.value.value)).to.be.closeTo(
       expectedTargetAmount,
       0.001,
     );
