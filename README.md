@@ -4,6 +4,8 @@ Currency converter exercise. Component not published to npm atm.
 
 I took the challenge to have 100% test coverage for this.
 
+[See it live](https://currency-convertor-joren.netlify.app/)
+
 This webcomponent follows the [open-wc](https://github.com/open-wc/open-wc) recommendations.
 
 ## Run demo
