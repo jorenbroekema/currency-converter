@@ -12,9 +12,13 @@ export async function fetchRates(date = 'latest') {
       .slice(0, 10);
   }
 
+  // TODO: Setup an API relay so we can hide the API key from the client...
   const response = await fetch(
-    `https://api.ratesapi.io/api/${dateString ?? 'latest'}`,
+    `http://data.fixer.io/api/${
+      dateString ?? 'latest'
+    }?access_key=6b4997b124236e470a7bce8c43d9df8c&format=1`,
   );
+
   const result = await response.json();
   if (response.status === 200) {
     return result;
@@ -85,7 +89,7 @@ export class CurrencyConverter extends LitElement {
           ${ref(this.dateInput)}
           @change="${this.changeDate}"
           type="date"
-          min="1999-01-04"
+          min="1999-01-01"
           max="${new Date().toISOString().slice(0, 10)}"
       /></label>
       ${this.currencies ? this.converterTemplate() : 'Loading currencies...'}

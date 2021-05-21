@@ -4,7 +4,7 @@ Currency converter exercise. Component not published to npm atm.
 
 I took the challenge to have 100% test coverage for this.
 
-[See it live](https://currency-convertor-joren.netlify.app/)
+[See it live](http://currency-converter-joren.surge.sh/)
 
 This webcomponent follows the [open-wc](https://github.com/open-wc/open-wc) recommendations.
 
@@ -57,6 +57,8 @@ Probably a good idea when fetching the rates, to append to the array of "rates":
 That would automatically add it to the `<select>` options.
 
 I would also consider this a bug since having the base currency in there is definitely to be expected.
+
+> Update: I had to update to a different API because rates api went down. This new API actually includes the base rate, so this is fixed.
 
 ### Use consistent CSS
 

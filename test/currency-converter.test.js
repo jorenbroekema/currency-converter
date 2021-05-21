@@ -49,7 +49,7 @@ describe('CurrencyConverter', () => {
         <label id="input-date">
         Conversion Rate Date
         <input
-          min="1999-01-04"
+          min="1999-01-01"
           type="date"
         >
       </label>
